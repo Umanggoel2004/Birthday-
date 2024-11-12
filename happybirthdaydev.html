@@ -1,0 +1,245 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe - Happy Birthday Dev!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #333;
+      font-size: 2em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      border-radius: 10px;
+    }
+
+    .cell:hover {
+      background-color: #444;
+    }
+
+    /* Card flip styles */
+    .flip-card {
+      width: 320px;
+      height: 220px;
+      perspective: 1000px;
+      display: none;
+      margin-top: 30px;
+      animation: scaleUp 1s ease forwards;
+    }
+
+    @keyframes scaleUp {
+      to {
+        transform: scale(1);
+      }
+    }
+
+    .flip-card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.5em;
+      color: white;
+    }
+
+    .flip-card-front {
+      background: linear-gradient(-45deg, #ff6b6b, #ffd93d, #6c5ce7, #a8e6cf);
+    }
+
+    .flip-card-back {
+      background: white;
+      color: #333;
+      transform: rotateY(180deg);
+      font-weight: bold;
+    }
+
+    /* Fireworks effect */
+    .firework {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: explode 1.5s ease-out forwards;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: scale(4) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-board">
+    <div class="cell" data-index="0"></div>
+    <div class="cell" data-index="1"></div>
+    <div class="cell" data-index="2"></div>
+    <div class="cell" data-index="3"></div>
+    <div class="cell" data-index="4"></div>
+    <div class="cell" data-index="5"></div>
+    <div class="cell" data-index="6"></div>
+    <div class="cell" data-index="7"></div>
+    <div class="cell" data-index="8"></div>
+  </div>
+
+  <div class="flip-card" id="flip-card">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">🎮 Tic Tac Toe</div>
+      <div class="flip-card-back">🎉 Happy Birthday Dev Brooo! 🎈</div>
+    </div>
+  </div>
+
+  <div id="fireworks"></div>
+
+  <script>
+    const cells = document.querySelectorAll('.cell');
+    const flipCard = document.getElementById('flip-card');
+    const fireworksContainer = document.getElementById('fireworks');
+    
+    const board = ['', '', '', '', '', '', '', '', ''];
+    const winningCombinations = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    let currentPlayer = 'X';  // Dev is 'X'
+    let gameOver = false;
+
+    function startGame() {
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.style.backgroundColor = '#333';
+        cell.addEventListener('click', handleCellClick, { once: true });
+      });
+    }
+
+    function handleCellClick(event) {
+      if (gameOver) return;
+
+      const index = event.target.dataset.index;
+      if (board[index] !== '') return; // Cell is already taken
+
+      board[index] = currentPlayer;
+      event.target.textContent = currentPlayer;
+      event.target.style.backgroundColor = currentPlayer === 'X' ? '#6c5ce7' : '#ffd93d';  // Color for Dev and Computer
+
+      if (checkWinner()) {
+        gameOver = true;
+        flipCard.style.display = 'block';
+        flipCard.classList.add('flipped');
+        showFireworks();
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';  // Switch player
+        if (currentPlayer === 'O' && !gameOver) {
+          computerMove();
+        }
+      }
+    }
+
+    function computerMove() {
+      if (gameOver) return;
+
+      const emptyCells = board.map((value, index) => value === '' ? index : null).filter(value => value !== null);
+      const randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
+      board[randomMove] = 'O';
+      cells[randomMove].textContent = 'O';
+      cells[randomMove].style.backgroundColor = '#ffd93d';
+
+      if (checkWinner()) {
+        gameOver = true;
+        flipCard.style.display = 'block';
+        flipCard.classList.add('flipped');
+        showFireworks();
+      } else {
+        currentPlayer = 'X';
+      }
+    }
+
+    function checkWinner() {
+      for (let combination of winningCombinations) {
+        const [a, b, c] = combination;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function showFireworks() {
+      for (let i = 0; i < 30; i++) {
+        const firework = document.createElement('div');
+        firework.classList.add('firework');
+        firework.style.left = `${Math.random() * window.innerWidth}px`;
+        firework.style.top = `${Math.random() * window.innerHeight}px`;
+        fireworksContainer.appendChild(firework);
+        setTimeout(() => firework.remove(), 1000);
+      }
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
